@@ -350,10 +350,10 @@ jobs:
         make installclean && \
         lunch treble_arm64_bvN-userdebug; \
         ${{ github.event.inputs.BUILD_COMMAND }}; \
-        mv out/target/product/*/system.img tempout/RisingOS-Generic-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
+        mv out/target/product/*/system.img tempout/RisingOS-Generic_arm64_bvN-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
         lunch treble_arm64_bgN-userdebug; \
         ${{ github.event.inputs.BUILD_COMMAND }}; \
-        mv out/target/product/*/system.img tempout/RisingOS-Generic-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
+        mv out/target/product/*/system.img tempout/RisingOS-Generic_arm64_bgN-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
         make installclean; \
         mv tempout out/target/product/finaloutput;
         # This build was run from OkBuddyGSI 
