@@ -334,7 +334,6 @@ jobs:
       run: |
         cd $PROJECTFOLDER
         
-        jq '.projects = []' ~/crave.conf > tmp && mv tmp ~/crave.conf
         if [ "${{ github.event.inputs.CLEAN_BUILD }}" == "yes" ]; then
            export CLEAN="clean"
         fi
