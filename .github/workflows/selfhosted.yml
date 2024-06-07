@@ -13,7 +13,7 @@ on:
       BASE_PROJECT:
         description: 'Choose a base project:'
         required: true
-        default: 'LineageOS 20.0'
+        default: 'RisingOS 14'
         type: choice
         options:
           - 'LineageOS 20.0'
@@ -29,39 +29,22 @@ on:
       BUILD_DIFFERENT_ROM:
         description: "Command to initialize a different 'repo' project:"
         required: false
-        default: "echo 'Build Starting!'"
+        default: "repo init -u https://github.com/RisingTechOSS/android -b fourteen --git-lfs"
       REMOVALS:
         description: "Folders to be removed before syncing:"
         required: false
       LOCAL_MANIFEST:
         description: "Personal local manifest [repository or raw]:"
         required: true
-        default: 'https://github.com/sounddrill31/local_manifests'
+        default: 'https://github.com/OkBuddyGSI/treble_manifest'
       LOCAL_MANIFEST_BRANCH:
         description: "Personal local manifest's branch:"
         required: false
-        default: 'lineage-oxygen'
-      DEVICE_NAME:
-        description: "Device's codename:"
-        required: true
-        default: "oxygen"
-      PRODUCT_NAME:
-        description: "Product to build:"
-        required: true
-        default: "lineage_oxygen"
+        default: '14'
       BUILD_COMMAND:
         description: 'Command to be used for compiling:'
         required: true
-        default: 'mka bacon'
-      BUILD_TYPE:
-        description: 'Type of build:'
-        required: true
-        default: 'userdebug'
-        type: choice
-        options: 
-        - 'eng'
-        - 'userdebug'
-        - 'user' 
+        default: 'make systemimage -j\$(nproc --all)'
       CLEAN_BUILD:
         description: 'Build with a clean workspace?'
         required: true
@@ -103,12 +86,12 @@ jobs:
 
     - name: Run crave devspace
       run: |
-        crave devspace -- "if tmux has-session -t ghactions; then 
+        crave devspace -- "if tmux has-session -t ghactionsokbuddy; then 
           echo "Runner is already Running" 
         else 
-          tmux kill-session -t ghactions;
-          tmux new-session -d -s ghactions 
-          tmux send-keys -t ghactions './actions-runner/run.sh' Enter 
+          tmux kill-session -t ghactionsokbuddy;
+          tmux new-session -d -s ghactionsokbuddy 
+          tmux send-keys -t ghactionsokbuddy './actions-runner-okbuddy/run.sh' Enter 
           echo "Runner Started"
         fi "
   prepare:
@@ -170,13 +153,6 @@ jobs:
           export REPO_INIT="repo init -u https://github.com/accupara/los-cm14.1.git -b cm-14.1 --git-lfs --depth=1"
         ;;
         esac
-
-        if [[ ${{ github.event.inputs.PRODUCT_NAME }} == *_* ]]; then
-          LUNCH="lunch ${{ github.event.inputs.PRODUCT_NAME }}-${{ github.event.inputs.BUILD_TYPE }}"
-        else
-          LUNCH="breakfast ${{ github.event.inputs.PRODUCT_NAME }} ${{ github.event.inputs.BUILD_TYPE }}"
-        fi
-
         echo "Building on ${{ github.event.inputs.BASE_PROJECT }} project"
         echo "PROJECTFOLDER=$PROJECTFOLDER" >> "$GITHUB_OUTPUT"
         echo "PROJECTID=$PROJECTID"  >> "$GITHUB_OUTPUT"
@@ -337,14 +313,6 @@ jobs:
       # Check-out in order to access the repository's files.
     - name: Check-out to repository
       uses: actions/checkout@v4
-
-      # Set-up a spearate directory for the device.
-    - name: Set-up workspace environment
-      run: |
-        cd $PROJECTFOLDER
-        mkdir ${{ github.event.inputs.DEVICE_NAME }}
-        cd ${{ github.event.inputs.DEVICE_NAME }}
-      continue-on-error: true
       
       # Generate 'git' credential in base of the workflow's author.
     - name: Set-up 'git' credential(s)
@@ -419,22 +387,45 @@ jobs:
           curl -o .repo/local_manifests ${{ github.event.inputs.LOCAL_MANIFEST }}; \
           echo "Git clone failed, downloading through curl instead..."; \
         fi \
-        
+
         # Sync the repositories
         /opt/crave/resync.sh  && \
         
         # Set up build environment
         export BUILD_USERNAME=${{ github.actor }} ; \
         export BUILD_HOSTNAME=crave ; \
+
+        # Apply Patches
+        bash RisingOS_gsi/patches/apply-patches.sh . && \
+
+        # Generate device configuration
+        cd device/phh/treble; \
+        bash generate.sh RisingOS && \
+        cd ../../..; \
         source build/envsetup.sh && \
 
         echo "Repository: ${{ github.repository }}"; \
         echo "Run ID: ${{ github.run_id }}"; \
 
+        # Prepare folders
+        mkdir -p tempout && \
+
         # Build the ROM
-        $LUNCH && \
         make installclean && \
-        ${{ github.event.inputs.BUILD_COMMAND }}"
+        lunch treble_arm64_bvN-userdebug; \
+        ${{ github.event.inputs.BUILD_COMMAND }}; \
+        mv out/target/product/*/system.img tempout/RisingOS-Generic_arm64_bvN-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
+        lunch treble_arm64_bgN-userdebug; \
+        ${{ github.event.inputs.BUILD_COMMAND }}; \
+        mv out/target/product/*/system.img tempout/RisingOS-Generic_arm64_bgN-$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img; \
+        make installclean; \
+        mv tempout out/target/product/finaloutput;
+        # This build was run from OkBuddyGSI 
+        # Triggered by ${{ github.actor }} representing OkBuddyGSI
+        
+        # Respect the Queue
+        # Respect the rules
+        # Please Contact t.me/OkBuddyGSI if this build breaks any rules"
       timeout-minutes: 720
 
       # Send Build 'status' notification
@@ -462,7 +453,8 @@ jobs:
         cd $PROJECTFOLDER
         echo "${{ secrets.GITHUB_TOKEN }}" > token.txt
         crave push token.txt -d $(crave ssh -- pwd | grep -v Select | sed -s 's/\r//g')/
-        crave ssh -- "export GH_UPLOAD_LIMIT="${{ secrets.GH_UPLOAD_LIMIT }}"; bash /opt/crave/github-actions/upload.sh '${{ github.run_id }}' '${{ github.event.inputs.DEVICE_NAME }}'  '${{ github.repository }}' '${{ github.event.inputs.PRODUCT_NAME }}-${{ github.run_id }}' '${{ secrets.EXTRA_FILES }}'"
+        NOW=$(date '+%Y%m%d')
+        crave ssh -- "export GH_UPLOAD_LIMIT="${{ secrets.GH_UPLOAD_LIMIT }}"; bash /opt/crave/github-actions/upload.sh '${{ github.run_id }}' 'RisingOS GSI $NOW'  '${{ github.repository }}' '${{ github.run_id }}' '${{ secrets.EXTRA_FILES }}'"
 
       # Pull Errors and Display them
     - name: Display error.log
@@ -479,7 +471,8 @@ jobs:
     - name: Upload Using telegram-upload
       run: |
         cd $PROJECTFOLDER
-        crave ssh -- "export TG_UPLOAD_LIMIT="${{ secrets.TG_UPLOAD_LIMIT }}"; bash /opt/crave/telegram/upload.sh '${{ github.event.inputs.DEVICE_NAME }}' '${{ secrets.EXTRA_FILES }}'"
+        NOW=$(date '+%Y%m%d')
+        crave ssh -- "export TG_UPLOAD_LIMIT="${{ secrets.TG_UPLOAD_LIMIT }}"; bash /opt/crave/telegram/upload.sh 'RisingOS GSI $NOW' '${{ secrets.EXTRA_FILES }}'"
       continue-on-error: true
 
       # Remove 'crave' clone
