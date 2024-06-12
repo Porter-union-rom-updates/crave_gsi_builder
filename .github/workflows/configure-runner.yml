@@ -54,5 +54,5 @@ jobs:
         else
             echo "Runner token found"
         fi
-        cd actions-runner
+        cd actions-runner-okbuddy
          ./config.sh --unattended --url "https://github.com/${{ github.repository }}" --token "${{ inputs.RUNNER_TOKEN }}""
