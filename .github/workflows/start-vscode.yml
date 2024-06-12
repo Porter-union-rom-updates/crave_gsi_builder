@@ -5,13 +5,13 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-name: Start/Restart Selfhosted Runner
+name: Start VSCode Session
 on:
   workflow_dispatch:
 
 jobs:
-  run-devspace-and-tmux:
-    runs-on: ubuntu-latest
+  run-devspace:
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
@@ -40,10 +40,9 @@ jobs:
         CRAVE_USERNAME: ${{  secrets.CRAVE_USERNAME  }}
         CRAVE_TOKEN: ${{  secrets.CRAVE_TOKEN  }}
 
-      # Start 'runner' in 'tmux'.
+      # Configure 'runner'
     - name: Run crave devspace
       run: |
-          crave ${{ secrets.CRAVE_FLAGS }} devspace -- "tmux kill-session -t ghactionsokbuddy || true
-          tmux new-session -d -s ghactionsokbuddy 
-          tmux send-keys -t ghactionsokbuddy './actions-runner-okbuddy/run.sh' Enter 
-          echo "Runner Started""
+        crave ${{ secrets.CRAVE_FLAGS }} devspace -- "rm -rf actions-runner || true
+        curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/code-server.sh ;
+        bash code-server.sh"
