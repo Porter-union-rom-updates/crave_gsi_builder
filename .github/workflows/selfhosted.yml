@@ -44,19 +44,19 @@ on:
       DEVICE_NAME:
         description: "Device's codename:"
         required: true
-        default: "oxygen"
+        default: "gsi_arm64"
       PRODUCT_NAME:
         description: "Product to build:"
         required: true
-        default: "lineage_oxygen"
+        default: "gsi_arm64"
       BUILD_COMMAND:
         description: 'Command to be used for compiling:'
         required: true
-        default: 'mka bacon'
+        default: 'make systemimage -j\$(nproc --all); rm -rf tempout/* || true; mv out/target/product/*/system.img tempout/LineageOS-Generic_arm64_bvN-\$(date +%Y%m%d)-OkBuddyGSI-EXPERIMENTATIONS.img'
       BUILD_TYPE:
         description: 'Type of build:'
         required: true
-        default: 'userdebug'
+        default: 'eng'
         type: choice
         options: 
         - 'eng'
@@ -479,7 +479,7 @@ jobs:
     - name: Upload Using telegram-upload
       run: |
         cd $PROJECTFOLDER
-        crave ssh -- "export TG_UPLOAD_LIMIT="${{ secrets.TG_UPLOAD_LIMIT }}"; bash /opt/crave/telegram/upload.sh '${{ github.event.inputs.DEVICE_NAME }}' '${{ secrets.EXTRA_FILES }}'"
+        crave ssh -- "export TG_UPLOAD_LIMIT="${{ secrets.TG_UPLOAD_LIMIT }}"; bash /opt/crave/telegram/upload.sh '${{ github.event.inputs.DEVICE_NAME }}' '${{ secrets.EXTRA_FILES }} tempout/*'"
       continue-on-error: true
 
       # Remove 'crave' clone
