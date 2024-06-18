@@ -43,6 +43,5 @@ jobs:
       # Configure 'runner'
     - name: Run crave devspace
       run: |
-        crave ${{ secrets.CRAVE_FLAGS }} devspace -- "rm -rf actions-runner || true
-        curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/code-server.sh ;
+        crave ${{ secrets.CRAVE_FLAGS }} devspace -- "curl -O https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/scripts/code-server.sh ;
         bash code-server.sh"
