@@ -18,13 +18,13 @@ rm -rf actions-runner-okbuddy || true
   
   url=https://github.com/actions/runner/releases/download/v${version}/actions-runner-linux-x64-${version}.tar.gz # Fetch URL
   url=$(echo "$url" | xargs) # Remove leading/trailing whitespace
-  if ! wget -O actions-runner-okbuddy-linux-x64.tar.gz "${url}"; then
+  if ! wget -O actions-runner-linux-x64.tar.gz "${url}"; then
     echo "Failed to download the runner package"
   exit 1
   fi
   
   echo "Extracting Zip"
     mkdir -p actions-runner-okbuddy
-    tar -xvf actions-runner-okbuddy-linux-x64.tar.gz -C actions-runner-okbuddy
+    tar -xvf actions-runner-linux-x64.tar.gz -C actions-runner-okbuddy
   echo "Removing Leftovers"
-    rm -rf actions-runner-okbuddy-linux-x64.tar.gz # Extract package and remove leftovers
+    rm -rf actions-runner-linux-x64.tar.gz # Extract package and remove leftovers
