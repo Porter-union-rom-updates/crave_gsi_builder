@@ -220,9 +220,8 @@ jobs:
       # Generate 'git' credential in base of the workflow's author.
     - name: Set-up 'git' credential(s)
       run: |
-        git config --global user.name "${{ github.actor }}"
-        git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-
+        git config --global user.name (:infiniteluck777:)
+        git config --global user.email atharva22pathak@gmail.com
       # Test Your Personal 'Local Manifests' against The ROM
     - name: Test Local Manifests
       if: ${{ github.event.inputs.BUILD_DIFFERENT_ROM != 'skip' }}
@@ -317,9 +316,8 @@ jobs:
       # Generate 'git' credential in base of the workflow's author.
     - name: Set-up 'git' credential(s)
       run: |
-        git config --global user.name "${{ github.actor }}"
-        git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-      
+        git config --global user.name (:infiniteluck777:)
+        git config --global user.email atharva22pathak@gmail.com
       # Download and configure 'crave'.
     - name: Configure the 'crave' environment
       run: |
@@ -392,7 +390,7 @@ jobs:
         /opt/crave/resync.sh  && \
         
         # Set up build environment
-        export BUILD_USERNAME=${{ github.actor }} ; \
+        export BUILD_USERNAME=(:infiniteluck777:); \
         export BUILD_HOSTNAME=crave ; \
 
         # Apply Patches
@@ -421,7 +419,7 @@ jobs:
         make installclean; \
         mv tempout out/target/product/finaloutput;
         # This build was run from OkBuddyGSI 
-        # Triggered by ${{ github.actor }} representing OkBuddyGSI
+        # Triggered by (:infiniteluck777:) representing OkBuddyGSI
         
         # Respect the Queue
         # Respect the rules
